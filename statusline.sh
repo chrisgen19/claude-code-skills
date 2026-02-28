@@ -32,16 +32,11 @@ if [ ${#short_dir} -gt 30 ]; then
   short_dir="${cwd##*/}"
 fi
 
-# -- GitHub user (cached for 1 hour — rarely changes) --
-GH_CACHE="/tmp/claude-statusline-gh-user"
-GH_CACHE_AGE=3600
-
+# -- Git user (reads local git config — respects includeIf per directory) --
 gh_user=""
-if [ ! -f "$GH_CACHE" ] || [ $(($(date +%s) - $(stat -f %m "$GH_CACHE" 2>/dev/null || echo 0))) -gt $GH_CACHE_AGE ]; then
-  gh_login=$(gh api user --jq '.login' 2>/dev/null || echo "")
-  echo "$gh_login" > "$GH_CACHE"
+if [ -n "$cwd" ]; then
+  gh_user=$(git -C "$cwd" config user.name 2>/dev/null || echo "")
 fi
-gh_user=$(cat "$GH_CACHE" 2>/dev/null | tr -d '\n')
 
 # -- Git info (cached for performance) --
 CACHE_FILE="/tmp/claude-statusline-git-cache"
